@@ -13,6 +13,10 @@
 #(Optional) Quality control using Qualimap.#
 
 #Gene-level quantification using featureCounts, with strandness based on species number.#
+
+
+
+#### REMEMBER different library preparations can lead to different types of strandedness => for me species 1 and 3 were reverse-stranded ###
 # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
