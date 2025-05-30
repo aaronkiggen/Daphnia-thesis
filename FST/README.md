@@ -31,7 +31,7 @@ This repository contains a three-step pipeline for read mapping, BAM processing,
 **Run with SLURM Array:**
 ```bash
 sbatch --array=1-24 scripts/1_mapping_filtering.sh
-
+```bash
 
 ### ✅ Step 2: Per-Chromosome SNP Calling
 
