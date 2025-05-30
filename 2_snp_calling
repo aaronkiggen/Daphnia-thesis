@@ -1,0 +1,100 @@
+#!/bin/bash -l
+
+#SBATCH--cluster = genius
+#SBATCH--job - name = chaturvedi_steven
+#SBATCH--nodes = 1
+#SBATCH--ntasks - per - node = 20
+#SBATCH--time = 06: 00: 00
+#SBATCH - A lp_svbelleghem
+#SBATCH - o chaturvedi_snps. % j.out
+#SBATCH--array = 1 - 13
+
+cd / lustre1 / scratch / 354 / vsc35429 / metastudy_final / FST_CHATURVEDI / maria / bams
+
+# zero - based index
+for arrays
+ID = $((SLURM_ARRAY_TASK_ID - 1))
+
+# environmental setup
+source / vsc - hard - mounts / leuven - data / 354 / vsc35429 / miniconda3 / etc / profile.d / conda.sh
+conda activate vcftools_env
+
+module load BCFtools / 1.15 .1 - GCC - 11.3 .0
+module load SAMtools / 1.9 - GCC - 6.4 .0 - 2.28
+module load Python / 3.7 .0 - foss - 2018 a
+module load tabix / 0.2 .6 - GCCcore - 6.4 .0
+export BCFTOOLS_PLUGINS = /vsc-hard-mounts/leuven - data / 354 / vsc35429 / bcftools / plugins /
+
+  # define arrays
+chrom = (1 2 3 4 5 6 7 8 9 10 scaffold_11 scaffold_12 scaffold_13)
+names = (1 2 3 4 5 6 7 8 9 10 scaffold_11 scaffold_12 scaffold_13)
+samples = (
+  SRR4340276 SRR4340277 SRR4340297 SRR4340304 SRR4340305 SRR4340306 SRR4340309 SRR4340274 SRR4340275 SRR4340286 SRR4340307 SRR4340308 SRR4340278 SRR4340279 SRR4340280 SRR4340282 SRR4340283 SRR4340284 SRR4340287 SRR4340288 SRR4340289 SRR4340290 SRR4340281 SRR4340285
+)
+REF = "/lustre1/scratch/354/vsc35429/metastudy_final/FST_CHATURVEDI/maria/genome/ncbi_dataset/data/GCA_030254905.1/GCA_030254905.1_UOB_LRV0_1_genomic.renamed.fna"
+REFNAME = "magna"
+
+# pick this chromosome and its“ name”
+CHR = "${chrom[${ID}]}"
+CHRNAME = "${names[${ID}]}"
+
+echo "================="
+echo "Array task ID: ${SLURM_ARRAY_TASK_ID} ? processing chr ${CHR}"
+echo "Sample list: ${#samples[@]} total; using all for joint mpileup"
+echo "Reference: ${REF}"
+echo
+
+# build space - separated list of all BAMs
+#ALL_BAMS = ""
+#for s in "${samples[@]}";
+do
+  # ALL_BAMS += " ${s}.${REFNAME}.filtered.sorted.nd.bam"
+#done
+
+# Step A: raw mpileup ? per - chr VCF
+
+VCF_CALL = "chaturvedi_chr_${CHRNAME}"
+OUTDIR = "/lustre1/scratch/354/vsc35429/metastudy_final/FST_CHATURVEDI/maria/bams/final"
+
+#bcftools mpileup\
+# - O z\
+#--threads 20\
+#--fasta - ref "${REF}"\
+#--regions "${CHR}"\
+# $ {
+  ALL_BAMS
+}\
+#--annotate FORMAT / DP | \
+  #bcftools call\
+#--multiallelic - caller\
+# - Oz\
+# - f GQ\
+# - o "${OUTDIR}/${VCF_CALL}.vcf.gz"
+
+cd / lustre1 / scratch / 354 / vsc35429 / metastudy_final / FST_CHATURVEDI / maria / bams / final
+
+#multi into bi
+#bcftools norm - m - any - o "$VCF_CALL.bi.vcf.gz" - Oz "$VCF_CALL.vcf.gz"--threads 20
+
+#vcftools\
+#--gzvcf "$VCF_CALL.bi.vcf.gz"\
+#--remove - indels\
+#--recode\
+#--stdout\
+# | gzip > "$VCF_CALL.filt.bi.vcf.gz"
+
+python parseVCF.py\
+  --gtf flag = GQ min = 30 gtTypes = Het\
+  --gtf flag = GQ min = 30 gtTypes = HomAlt\
+  --gtf flag = DP min = 10\
+  --skipIndels\ -
+  i "$VCF_CALL.filt.bi.vcf.gz"\ |
+  gzip > "$VCF_CALL.calls.filt.bi.vcf.gz"
+
+# Step D: strip BAM suffix from SNP IDs ? H.calls.gz
+CALLS_H = "chaturvedi_${REFNAME}_chr_${CHRNAME}.H.calls"
+zcat "$VCF_CALL.calls.filt.bi.vcf.gz"\ |
+  sed 's/\.magna\.filtered\.sorted\.nd\.bam//g'\ |
+  bgzip - c > "$CALLS_H.gz"
+
+echo "Done chr ${CHRNAME}."
