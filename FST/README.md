@@ -5,15 +5,15 @@ This repository contains a three-step pipeline for read mapping, BAM processing,
 ---
 
 ## 📁 Directory Structure
-├── README.md # Pipeline documentation
-├── scripts/
-│ ├── 1_mapping_filtering.sh # Mapping reads, filtering, sorting, deduplication
-│ ├── 2_snp_calling.sh # Per-chromosome SNP calling
-│ ├── parseVCF.py # Custom VCF filtering script
-├── bams/ # BAM files (input/output)
-├── genome/ # Reference genome FASTA
-├── final/ # Final filtered SNP calls
-└── logs/ # SLURM output logs
+- `README.md` — Pipeline documentation
+- `scripts/`
+  - `1_mapping_filtering.sh` — Mapping reads, filtering, sorting, deduplication
+  - `2_snp_calling.sh` — Per-chromosome SNP calling
+  - `parseVCF.py` — Custom VCF filtering script
+- `bams/` — BAM files (input/output)
+- `genome/` — Reference genome FASTA
+- `final/` — Final filtered SNP calls
+- `logs/` — SLURM output logs
 
 ---
 
