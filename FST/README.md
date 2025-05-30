@@ -46,6 +46,7 @@ sbatch --array=1-24 scripts/1_mapping_filtering.sh
 **Run with SLURM Array:**
 ```bash
 sbatch --array=1-13 scripts/2_snp_calling.sh
+```
 
 
 ### ✅ Step 3: Custom VCF Filtering
