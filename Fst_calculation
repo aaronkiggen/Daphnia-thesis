@@ -1,0 +1,57 @@
+#!/bin/bash -l
+
+#SBATCH--cluster = genius
+#SBATCH--job - name = chaturvedi_fst
+#SBATCH--nodes = 1
+#SBATCH--ntasks - per - node = 20
+#SBATCH--time = 04: 00: 00
+#SBATCH - A lp_svbelleghem
+#SBATCH - o chaturvedi_fst. % j.out
+#SBATCH--array = 1 - 13
+
+module load BCFtools / 1.15 .1 - GCC - 11.3 .0
+module load SAMtools / 1.9 - GCC - 6.4 .0 - 2.28
+module load Python / 3.7 .0 - foss - 2018 a
+module load tabix / 0.2 .6 - GCCcore - 6.4 .0
+
+cd / lustre1 / scratch / 354 / vsc35429 / metastudy_final / FST_CHATURVEDI / maria / bams / final /
+
+  # List of “real” chromosome IDs and their corresponding labels
+chrom = (1 2 3 4 5 6 7 8 9 10 scaffold_11 scaffold_12 scaffold_13)
+names = (1 2 3 4 5 6 7 8 9 10 scaffold_11 scaffold_12 scaffold_13)
+
+# Convert SLURM_ARRAY_TASK_ID to zero - based index
+ID = $((SLURM_ARRAY_TASK_ID - 1))
+CHR = $ {
+  chrom[ID]
+}
+CHRNAME = $ {
+  names[ID]
+}
+
+echo "================="
+echo "Processing chromosome: $CHR (array index $ID)"
+echo "================="
+
+popfile = /vsc-hard-mounts/leuven - data / 354 / vsc35429 / PhD / metastudy_final / fst / maria / chaturvedi_pops.txt
+pop1 = B
+pop2 = M
+
+  /
+  vsc - hard - mounts / leuven - data / 354 / vsc35429 / miniconda3 / bin / python popgenWindows_egglib.py\ -
+  w 50000 - s 25000--minSites 1000--maxMissing 0.25\ -
+  T 10--windType coordinate - f phased\ -
+  g "chaturvedi_magna_chr_${CHRNAME}.H.calls.gz"\
+  --popsFile $popfile\ -
+  o chaturvedi_chr_$ {
+    CHRNAME
+  }.stats_$ {
+    pop1
+  }
+_$ {
+  pop2
+}
+_w50000_s25000_eggStats.stats\ -
+  p $pop1\ -
+  p $pop2\ -
+  eggB FstWC, Dxy - eggW S, Pi, thetaW, D
