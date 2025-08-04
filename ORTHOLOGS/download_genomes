@@ -1,0 +1,63 @@
+#go from genomes to annotated genomes to orthogroups in daphnia
+  #step 1: downloading the genomes
+  
+source /vsc-hard-mounts/leuven-data/354/vsc35429/miniconda3/etc/profile.d/conda.sh
+conda activate ncbi_datasets
+#conda install -c conda-forge ncbi-datasets-cli
+
+cd /lustre1/scratch/354/vsc35429/metastudy_final/genomes
+  
+# Make a base output directory
+mkdir -p daphnia_genomes
+cd daphnia_genomes
+
+# NCBI Accessions and folder names
+declare -A ncbi_ids
+ncbi_ids=(
+  ["GCF_021134715.1"]="GCF_021134715.1"
+  ["GCF_022539665.2"]="GCF_022539665.2"
+  ["GCF_020631705.1"]="GCF_020631705.1"
+)
+
+# Download NCBI genomes
+for accession in "${!ncbi_ids[@]}"; do
+  folder="${ncbi_ids[$accession]}"
+  echo "Downloading NCBI genome: $accession into folder: $folder"
+  mkdir -p "$folder"
+  datasets download genome accession "$accession" --include genome,gtf,annotation-report
+  unzip -q "$accession.zip" -d "$folder"
+  rm "$accession.zip"
+done
+
+
+# List of idaphnia URLs and mapping to species folders
+declare -A idaphnia_urls
+idaphnia_urls=(
+  ["Daphnia_galeata_M5"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_galeata_M5/Daphnia_galeata_M5_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_galeata_M5/Daphnia_galeata_M5_genome.gtf"
+  ["Daphnia_obtusa_FS6"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_obtusa_FS6/Daphnia_obtusa_FS6_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_obtusa_FS6/Daphnia_obtusa_FS6_genome.gtf"
+  ["Daphnia_pulicaria_LK16"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_pulicaria_LK16/Daphnia_pulicaria_LK16_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_pulicaria_LK16/Daphnia_pulicaria_LK16_genome.gtf"
+  ["Daphnia_sinensis_WSL"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_sinensis_WSL/Daphnia_sinensis_WSL_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_sinensis_WSL/Daphnia_sinensis_WSL_genome.gtf"
+  ["Daphnia_arabica_Unknow"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_arabica_Unknow/Daphnia_arabica_Unknow_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_arabica_Unknow/Daphnia_arabica_Unknow_genome.gtf"
+  ["Daphnia_arenata_OA85"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_arenata_OA85/Daphnia_arenata_OA85_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_arenata_OA85/Daphnia_arenata_OA85_genome.gtf"
+  ["Daphnia_lumholtzi_SAG"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_lumholtzi_SAG/Daphnia_lumholtzi_SAG_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_lumholtzi_SAG/Daphnia_lumholtzi_SAG_genome.gtf"
+  ["Daphnia_catawba_EL19-05"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_catawba_EL19-05/Daphnia_catawba_EL19-05_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_catawba_EL19-05/Daphnia_catawba_EL19-05_genome.gtf"
+  ["Daphnia_dentifera_L002"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_dentifera_L002/Daphnia_dentifera_L002_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_dentifera_L002/Daphnia_dentifera_L002_genome.gtf"
+  ["Daphnia_mitsukuri_SZH4"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_mitsukuri_SZH4/Daphnia_mitsukuri_SZH4_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_mitsukuri_SZH4/Daphnia_mitsukuri_SZH4_genome.gtf"
+  ["Daphnia_pulex_BEL2"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_pulex_BEL2/Daphnia_pulex_BEL2_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_pulex_BEL2/Daphnia_pulex_BEL2_genome.gtf"
+  ["Daphnia_ambigua_Q001"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_ambigua_Q001/Daphnia_ambigua_Q001_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_ambigua_Q001/Daphnia_ambigua_Q001_genome.gtf"
+  ["Daphnia_melanica_CON6"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_melanica_CON6/Daphnia_melanica_CON6_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_melanica_CON6/Daphnia_melanica_CON6_genome.gtf"
+  ["Daphnia_parvula_L001"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_parvula_L001/Daphnia_parvula_L001_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_parvula_L001/Daphnia_parvula_L001_genome.gtf"
+  ["Daphnia_magniceps_GM20-03"]="https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_magniceps_GM20-03/Daphnia_magniceps_GM20-03_genome.fa https://idaphnia.com/data/daphnia_data/fa/ref_genome/Daphnia_magniceps_GM20-03/Daphnia_magniceps_GM20-03_genome.gtf"
+)
+
+
+# Download idaphnia genomes into species folders
+for species in "${!idaphnia_urls[@]}"; do
+  mkdir -p "$species"
+  for url in ${idaphnia_urls[$species]}; do
+    echo "Downloading $url into folder $species"
+    wget -q --show-progress -P "$species" "$url"
+  done
+done
+
+echo "✅ All genomes and annotations are downloaded."
